@@ -37,7 +37,7 @@ function List(props) {
         list.push(<li key={temp.id}>
             <a id={temp.id} href={"/read/" + temp.id} onClick={e => {
                 e.preventDefault() // 화면 새로고침 방지
-                props.onChangeMode(Number(e.target.id))
+                props.onChangeMode(Number(e.target.id))// 태그속성의 값은 문자열, 따라서 숫자값으로 할당하고 rerendering
             }}>{temp.userName}</a> { /*userName:'홍길동', userMail:'a123@naver.com'*/}
         </li>)
     }
@@ -72,6 +72,7 @@ function Create(props) {
 function Update(props) {
 
     // hook에 대해서도 공부하기
+    // prop이 넘어오면 변경되지 않는 문제를 내부 state로 대입해서, 변경 가능하도록 설정
     const [userName, setName] = useState(props.userName)
     const [userMail, setMail] = useState(props.userMail)
 
@@ -137,6 +138,14 @@ function App() {
     } else if (mode === 'CREATE') {
         content = <Create onCreate={(userName, userMail) => {
             const newInfo = { id: nextId, userName: userName, userMail: userMail }
+
+            for (let i = 0; i < infos.length; i++) {
+                if (infos[i].userName === userName) {
+                    alert('동일한 이름은 등록할 수 없습니다.')
+                    setMode('INIT')
+                    return
+                }
+            }
 
             // 새로운 주소값을 할당받아 데이터를 추가해야지 리액트의 가상 돔이 변경을 감지하는듯 함
             // 원시자료형은 고려대상이 아니다.
