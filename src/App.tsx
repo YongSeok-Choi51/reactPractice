@@ -10,6 +10,8 @@ interface anUser {
 }
 
 
+
+// any 타입으로 변경하여 children 바인딩 문제 해결... 근본적인 솔루션이 아니다. 
 function Article(props: any): ReactElement {
 
     return <article>
@@ -18,6 +20,8 @@ function Article(props: any): ReactElement {
     </article>
 
 }
+
+
 
 function Header(props: { title: string, onChangeMode: () => {} }): ReactElement {
 
@@ -29,6 +33,8 @@ function Header(props: { title: string, onChangeMode: () => {} }): ReactElement 
     </header>
 
 }
+
+
 
 function List(props: { userList: anUser[], onChangeMode: (id: number) => {} }): ReactElement {
 
@@ -52,23 +58,27 @@ function List(props: { userList: anUser[], onChangeMode: (id: number) => {} }): 
     </nav>
 }
 
-function Create(props: { onCreate: (userName: string, userMail: string) => void | {} }): ReactElement {
+
+
+function Create(props: { onCreate: (uName: string, uMail: string) => void }) {
 
     return <div>
         <h2>입력창</h2>
         <form onSubmit={e => {
             e.preventDefault()
-            const userName: string = e.currentTarget.name
-            const userMail: string = e.currentTarget.mail // 바인딩이 될까?
-            props.onCreate(userName, userMail)
+            const uName = e.currentTarget.userName.value
+            const uMail = e.currentTarget.userMail.value // 바인딩이 될까?
+            props.onCreate(uName, uMail)
         }}>
-            <p><input type="text" name='name' placeholder='이름' /></p>
-            <p><input type="email" name='mail' placeholder='이메일' /></p>
+            <p><input type="text" name='userName' placeholder='이름' /></p>
+            <p><input type="email" name='userMail' placeholder='이메일' /></p>
             <p><input type="submit" value="생성" /></p>
 
         </form>
     </div>
 }
+
+
 
 function Update(props: { userName: string, userMail: string, onUpdate: (uName: string, uMail: string) => void }) {
 
@@ -98,7 +108,8 @@ function Update(props: { userName: string, userMail: string, onUpdate: (uName: s
 }
 
 
-//const App: React.FC = () => {
+
+
 function App() {
 
     // hook을 사용할때에는 제너릭 명시를 하지 않아도 된다고 함
@@ -116,6 +127,48 @@ function App() {
     let context: ReactElement | null = null
     let flag: boolean
 
+    // 제출하면 화면이 아예 없어지는 현상.. 
+    const onCreate = (uName: string, uMail: string) => {
+        alert('호출됨')
+        const newInfo = { id: nextId, userName: uName, userMail: uMail }
+        flag = true
+
+        for (let i = 0; i < infos.length; i++) {
+            if (infos[i].userName === uName) {
+                alert('동일한 이름은 등록할 수 없습니다.')
+                setMode('INIT')
+                flag = false
+                break
+            }
+        }
+
+        // 새로운 주소값을 할당받아 데이터를 추가해야지 리액트의 가상 돔이 변경을 감지하는듯 함
+        // 원시자료형은 고려대상이 아니다.
+        //이전 데이터를 그대로 복사하여 새로운 데이터를 추가
+        if (flag) {
+            const newInfos = [...infos]
+            newInfos.push(newInfo)
+            setInfos(newInfos)
+            setMode('READ')
+            setId(nextId)
+            setNextId(nextId + 1) // 다음 생성값을 위한 id
+        }
+    }
+
+    const onUpdate = (uName: string, uMail: string) => {
+        console.log(uName, uMail)
+        const newInfos = [...infos] // 배열을 그대로 복사
+        const updatedInfo = { id: id, userName: uName, userMail: uMail }
+        for (let i = 0; i < newInfos.length; i++) {
+            if (newInfos[i].id === id) {
+                newInfos[i] = updatedInfo
+                break
+            }
+        }
+        setInfos(newInfos)
+        setMode('READ')
+    }
+
 
     if (mode === 'INIT') {
 
@@ -123,6 +176,7 @@ function App() {
         content = <Article userName='hello' userMail='world'> </Article>
 
     } else if (mode === 'READ') {
+
         // 특정 유저가 선택이 되어 상태가 변경이 됐을때, 해당되는 객체를 props로 넘겨 렌더링
         // 특정 state T일때, setting되어있는 id값을 찾아, 그 값으로 동작
         let uName, uMail = null
@@ -141,57 +195,22 @@ function App() {
 
     } else if (mode === 'CREATE') {
 
-        content = <Create onCreate={(userName, userMail) => {
-            const newInfo = { id: nextId, userName: userName, userMail: userMail }
-            flag = true
-
-            for (let i = 0; i < infos.length; i++) {
-                if (infos[i].userName === userName) {
-                    alert('동일한 이름은 등록할 수 없습니다.')
-                    setMode('INIT')
-                    flag = false
-                    break
-                }
-            }
-
-            // 새로운 주소값을 할당받아 데이터를 추가해야지 리액트의 가상 돔이 변경을 감지하는듯 함
-            // 원시자료형은 고려대상이 아니다.
-            //이전 데이터를 그대로 복사하여 새로운 데이터를 추가
-            if (flag) {
-                const newInfos = [...infos]
-                newInfos.push(newInfo)
-                setInfos(newInfos)
-                setMode('READ')
-                setId(nextId)
-                setNextId(nextId + 1) // 다음 생성값을 위한 id
-            }
-        }}></Create>
+        content = <Create onCreate={onCreate}></Create>
 
     } else if (mode === 'UPDATE') {
 
+        // 이름과 이메일을 찾기위한 변수
         let uName = ''
         let uMail = ''
 
+        // 현재 상태에 저장된 id값인경우 (READ로 보여지고 있는 객체id) 
         for (let i = 0; i < infos.length; i++) {
             if (infos[i].id === id) {
                 uName = infos[i].userName
                 uMail = infos[i].userMail
             }
         }
-        content = <Update userName={uName} userMail={uMail} onUpdate={(uName, uMail) => {
-            console.log(uName, uMail)
-            const newInfos = [...infos] // 배열을 그대로 복사
-            const updatedInfo = { id: id, userName: uName, userMail: uMail }
-            for (let i = 0; i < newInfos.length; i++) {
-                if (newInfos[i].id === id) {
-                    newInfos[i] = updatedInfo
-                    break
-                }
-            }
-            setInfos(newInfos)
-            setMode('READ')
-        }}></Update>
-
+        content = <Update userName={uName} userMail={uMail} onUpdate={onUpdate}></Update>
     }
 
     return (
@@ -214,7 +233,6 @@ function App() {
                 </ul>
             </div>
         </>
-
     )
 }
 export default App
