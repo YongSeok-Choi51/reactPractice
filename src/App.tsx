@@ -1,9 +1,11 @@
-import React, { ReactElement, ReactNode, useState } from 'react'
+import React, { ReactElement, useState } from 'react'
 import './App.css'
 
 
-// 사용자 정보를 담을 구조체 선언
-interface anUser {
+// app컴포넌트에 create, update 공통으로 사용할 Validation구현하기.(이름, 이메일중에 중복값있는지, 있으면 어떤 필드가 문제인지 파악해서))
+
+// 사용자 정보를 담을 구조체 선언 nullable
+interface user {
     id: number,
     userName: string,
     userMail: string
@@ -36,7 +38,7 @@ function Header(props: { title: string, onChangeMode: () => {} }): ReactElement 
 
 
 
-function List(props: { userList: anUser[], onChangeMode: (id: number) => {} }): ReactElement {
+function List(props: { userList: user[], onChangeMode: (id: number) => {} }): ReactElement {
 
     const list: ReactElement[] = []
 
@@ -69,6 +71,7 @@ function Create(props: { onCreate: (uName: string, uMail: string) => void }) {
             const uName = e.currentTarget.userName.value
             const uMail = e.currentTarget.userMail.value // 바인딩이 될까?
             props.onCreate(uName, uMail)
+
         }}>
             <p><input type="text" name='userName' placeholder='이름' /></p>
             <p><input type="email" name='userMail' placeholder='이메일' /></p>
@@ -116,7 +119,7 @@ function App() {
     const [mode, setMode] = useState('INIT')
     const [id, setId] = useState(1)
     const [nextId, setNextId] = useState(4)
-    const [infos, setInfos] = useState([
+    const [users, setUsers] = useState([
         { id: 1, userName: '홍길동', userMail: 'hong9@naver.com' },
         { id: 2, userName: '홍길순', userMail: 'hong8@naver.com' },
         { id: 3, userName: '홍길자', userMail: 'hong7@naver.com' }
@@ -125,48 +128,80 @@ function App() {
 
     let content: ReactElement | null = null
     let context: ReactElement | null = null
-    let flag: boolean
+    let flag: number
 
-    // 제출하면 화면이 아예 없어지는 현상.. 
     const onCreate = (uName: string, uMail: string) => {
-        alert('호출됨')
-        const newInfo = { id: nextId, userName: uName, userMail: uMail }
-        flag = true
 
-        for (let i = 0; i < infos.length; i++) {
-            if (infos[i].userName === uName) {
-                alert('동일한 이름은 등록할 수 없습니다.')
-                setMode('INIT')
-                flag = false
+        const newUser = { id: nextId, userName: uName, userMail: uMail }
+
+        // 멀티 스레드 환경에서는 문제가 될 수 있을것 같다. 어떻게 해야할까?
+        flag = preCheck(newUser)
+        // update와 같은 구조인데 다른동작. 뭔가 추상화시키고 싶다.
+        switch (flag) {
+            case -1:
+                const newUsers = [...users]
+                newUsers.push(newUser)
+                setUsers(newUsers)
+                setMode('READ')
+                setId(nextId)
+                setNextId(nextId + 1)
                 break
-            }
-        }
-
-        // 새로운 주소값을 할당받아 데이터를 추가해야지 리액트의 가상 돔이 변경을 감지하는듯 함
-        // 원시자료형은 고려대상이 아니다.
-        //이전 데이터를 그대로 복사하여 새로운 데이터를 추가
-        if (flag) {
-            const newInfos = [...infos]
-            newInfos.push(newInfo)
-            setInfos(newInfos)
-            setMode('READ')
-            setId(nextId)
-            setNextId(nextId + 1) // 다음 생성값을 위한 id
+            case 3:
+                alert('이미 동일한 유저가 존재합니다.')
+                break
+            case 2:
+                alert('중복된 이름이 존재합니다.\n 다른 이름을 등록해주세요.')
+                break
+            case 1:
+                alert('중복된 Mail이 존재합니다.\n 다른 Mail을 등록해주세요.')
+                break
         }
     }
 
     const onUpdate = (uName: string, uMail: string) => {
-        console.log(uName, uMail)
-        const newInfos = [...infos] // 배열을 그대로 복사
-        const updatedInfo = { id: id, userName: uName, userMail: uMail }
-        for (let i = 0; i < newInfos.length; i++) {
-            if (newInfos[i].id === id) {
-                newInfos[i] = updatedInfo
+
+        const newUsers = [...users] // 배열을 그대로 복사
+        const updatedUser = { id: id, userName: uName, userMail: uMail }
+
+        flag = preCheck(updatedUser)
+        switch (flag) {
+            case -1:
+                for (let i = 0; i < newUsers.length; i++) {
+                    if (newUsers[i].id === id) {
+                        newUsers[i] = updatedUser
+                        break
+                    }
+                }
+                setUsers(newUsers)
+                setMode('READ')
                 break
+            case 3:
+                alert('이미 동일한 유저가 존재합니다.')
+                break
+            case 2:
+                alert('중복된 이름이 존재합니다.\n 다른 이름을 등록해주세요.')
+                break
+            case 1:
+                alert('중복된 Mail이 존재합니다.\n 다른 Mail을 등록해주세요.')
+                break
+        }
+    }
+
+    const preCheck = (user: user): number => {
+
+        for (let i = 0; i < users.length; i++) {
+
+            // 매개변수로 넘어온 id가 현재 존재하는 배열의 유저와 다를 때, 즉 자기 자신이 아닌 column일 때
+            if (user.id !== users[i].id) {
+
+                // 이름 | 이메일이 중복되는 경우 + 둘 다 중복되는 경우
+                if ((user.userName === users[i].userName) && (user.userMail === users[i].userMail)) return 3
+                else if (user.userName === users[i].userName) return 2
+                else if (user.userMail === users[i].userMail) return 1
             }
         }
-        setInfos(newInfos)
-        setMode('READ')
+        // 해당 구문이 실행되어 함수가 종료된다면, 중복값이 없음
+        return -1
     }
 
 
@@ -180,10 +215,10 @@ function App() {
         // 특정 유저가 선택이 되어 상태가 변경이 됐을때, 해당되는 객체를 props로 넘겨 렌더링
         // 특정 state T일때, setting되어있는 id값을 찾아, 그 값으로 동작
         let uName, uMail = null
-        for (let i = 0; i < infos.length; i++) {
-            if (infos[i].id === id) {
-                uName = infos[i].userName
-                uMail = infos[i].userMail
+        for (let i = 0; i < users.length; i++) {
+            if (users[i].id === id) {
+                uName = users[i].userName
+                uMail = users[i].userMail
             }
         }
 
@@ -204,10 +239,10 @@ function App() {
         let uMail = ''
 
         // 현재 상태에 저장된 id값인경우 (READ로 보여지고 있는 객체id) 
-        for (let i = 0; i < infos.length; i++) {
-            if (infos[i].id === id) {
-                uName = infos[i].userName
-                uMail = infos[i].userMail
+        for (let i = 0; i < users.length; i++) {
+            if (users[i].id === id) {
+                uName = users[i].userName
+                uMail = users[i].userMail
             }
         }
         content = <Update userName={uName} userMail={uMail} onUpdate={onUpdate}></Update>
@@ -215,23 +250,21 @@ function App() {
 
     return (
         <>
-            <div>
-                {/* async 쓰면 에러가 없어지는데, 왜그런지 공부하기 */}
-                <Header title="Hello" onChangeMode={async () => setMode('INIT')}></Header>
-                <List userList={infos} onChangeMode={async (id) => {
-                    // 특정 유저를 클릭하면, 모드를 변경하고 해당하는 unique한 id를 가진 객체를 가져오기
-                    setMode('READ')
-                    setId(id)
-                }}></List>
-                {content}
-                <ul>
-                    <li><a href="/create" onClick={e => {
-                        e.preventDefault()
-                        setMode('CREATE')
-                    }}>등록하기</a></li>
-                    {context}
-                </ul>
-            </div>
+            {/* async 쓰면 에러가 없어지는데, 왜그런지 공부하기 */}
+            <Header title="Hello" onChangeMode={async () => setMode('INIT')}></Header>
+            <List userList={users} onChangeMode={async (id) => {
+                // 특정 유저를 클릭하면, 모드를 변경하고 해당하는 unique한 id를 가진 객체를 가져오기
+                setMode('READ')
+                setId(id)
+            }}></List>
+            {content}
+            <ul>
+                <li><a href="/create" onClick={e => {
+                    e.preventDefault()
+                    setMode('CREATE')
+                }}>등록하기</a></li>
+                {context}
+            </ul>
         </>
     )
 }
