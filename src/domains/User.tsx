@@ -2,7 +2,7 @@
 interface user {
     userName: string,
     userMail: string,
-    id: number
+    id?: number
 }
 
 export default user

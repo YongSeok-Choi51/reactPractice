@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
+import user from '../domains/User'
 import StateCode from '../enums/StateCode'
 
 function Create(props: {
-    onCreate: (userName: string, userMail: string) => void,
-    preCheck: (userName: string, userMail: string, uid?: number) => StateCode
+    onCreate: (user: user) => void,
+    preCheck: (user: user) => StateCode
 }) {
 
     const style = {
@@ -22,11 +23,22 @@ function Create(props: {
     return <div>
         <h2>입력창</h2>
         <form onSubmit={e => {
+
             e.preventDefault()
-            const uName = e.currentTarget.userName.value
-            const uMail = e.currentTarget.userMail.value
-            setCode(props.preCheck(uName, uMail, undefined))
-            props.onCreate(userName, userMail)
+
+            const tempUser = {
+                userName: userName,
+                userMail: userMail,
+                id: undefined!
+            }
+            setCode(props.preCheck(tempUser))
+            console.log("stateValue ", userName, userMail, "formValue", e.currentTarget.userName.value, e.currentTarget.userMail.value)
+            console.log(curCode)
+
+            if (curCode === StateCode.CHECK_OK) {
+                props.onCreate(tempUser)
+            }
+
         }}>
             <p style={curCode === StateCode.DUPLICATION_ALL ? style : undefined}>
 
@@ -34,7 +46,7 @@ function Create(props: {
                 <p style={curCode === StateCode.DUPLICATION_NAME ? style : undefined}>
                     <input type="text" name='userName' placeholder='이름' onChange={e => {
                         setName(e.target.value)
-                        setCode(props.preCheck(userName, userMail, undefined))
+                        //setCode(props.preCheck(userName, userMail, undefined!))
                     }} />
                 </p>
                 {curCode === StateCode.DUPLICATION_NAME ? '같은 이름의 사용자가 존재합니다.' : ''}
@@ -43,7 +55,7 @@ function Create(props: {
                 <p style={curCode === StateCode.DUPLICATION_MAIL ? style : undefined}>
                     <input type="email" name='userMail' placeholder='이메일' onChange={e => {
                         setMail(e.target.value)
-                        setCode(props.preCheck(userName, userMail, undefined))
+                        //setCode(props.preCheck(userName, userMail, undefined!))
                     }} />
                 </p>
                 {curCode === StateCode.DUPLICATION_MAIL ? '중복된 이메일이 존재합니다.' : ''}
