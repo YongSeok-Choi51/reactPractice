@@ -1,122 +1,38 @@
 import React, { ReactElement, useState } from 'react'
 import './App.css'
+import Article from './components/Article'
+import Create from './components/Create'
+import Header from './components/Header'
+import List from './components/List'
+import Update from './components/Update'
+import StateCode from './enums/StateCode'
 
+/*
+    FeedBack (04.05)
 
-// app컴포넌트에 create, update 공통으로 사용할 Validation구현하기.(이름, 이메일중에 중복값있는지, 있으면 어떤 필드가 문제인지 파악해서))
+    Create, Update 컴포넌트 안에서 특정 input에 대한 Validation을 실패했을때, 해당필드 border를 빨갛게 표시하세요.
+    preCheck하고 반환된 결과를 어떤 숫자가 어떤 의미를 가지는지 협업하는사람이 잘 이해할 수 있도록 바꿔보세요.
+    코드중복 최대한 없애보세요.
+*/
 
-// 사용자 정보를 담을 구조체 선언 nullable
-interface user {
-    id: number,
-    userName: string,
-    userMail: string
+// app component actionMode enumeration type
+// app컴포넌트 내부에서만 사용되기 때문에, 여기에 선언하였습니다.
+enum ViewMode {
+    INIT,       // 초기 모드, 환영문구 출력
+    READ,       // 특정id가 set되고, 해당 객체가 display되는 모드
+    CREATE,     // 새로운 객체 생성시 동작하는 모드
+    UPDATE      // 특정 id가 set, 해당 객체에 대해 수정하는 모드
 }
-
-
-
-// any 타입으로 변경하여 children 바인딩 문제 해결... 근본적인 솔루션이 아니다. 
-function Article(props: any): ReactElement {
-
-    return <article>
-        <h2>{props.userName}</h2>
-        {props.userMail}
-    </article>
-
-}
-
-
-
-function Header(props: { title: string, onChangeMode: () => {} }): ReactElement {
-
-    return <header>
-        <h1><a href="/" onClick={e => {
-            e.preventDefault()
-            props.onChangeMode()
-        }}>{props.title}</a></h1>
-    </header>
-
-}
-
-
-
-function List(props: { userList: user[], onChangeMode: (id: number) => {} }): ReactElement {
-
-    const list: ReactElement[] = []
-
-    for (let i of props.userList) {
-
-        list.push(<li key={i.id}>
-            <a id={String(i.id)} href={"/read/" + i.id} onClick={e => {
-                e.preventDefault() // 화면 새로고침 방지
-                props.onChangeMode(i.id) // 여기 의심스러움.
-            }}>{i.userName}</a> { /*userName:'홍길동', userMail:'a123@naver.com'*/}
-        </li>)
-
-    }
-
-    return <nav>
-        <ol>
-            {list}
-        </ol>
-    </nav>
-}
-
-
-
-function Create(props: { onCreate: (uName: string, uMail: string) => void }) {
-
-    return <div>
-        <h2>입력창</h2>
-        <form onSubmit={e => {
-            e.preventDefault()
-            const uName = e.currentTarget.userName.value
-            const uMail = e.currentTarget.userMail.value // 바인딩이 될까?
-            props.onCreate(uName, uMail)
-
-        }}>
-            <p><input type="text" name='userName' placeholder='이름' /></p>
-            <p><input type="email" name='userMail' placeholder='이메일' /></p>
-            <p><input type="submit" value="생성" /></p>
-
-        </form>
-    </div>
-}
-
-
-
-function Update(props: { userName: string, userMail: string, onUpdate: (uName: string, uMail: string) => void }) {
-
-    // hook에 대해서도 공부하기
-    // prop이 넘어오면 변경되지 않는 문제를 내부 state로 대입해서, 변경 가능하도록 설정
-    const [userName, setName] = useState(props.userName)
-    const [userMail, setMail] = useState(props.userMail)
-
-    return <div>
-        <h2>Update</h2>
-        <form onSubmit={e => {
-            e.preventDefault()
-            const uName = e.currentTarget.userName.value
-            const uMail = e.currentTarget.userMail.value
-            props.onUpdate(uName, uMail) // Update컴포넌트의 prop 함수를 호출하여 변경됨을 통보
-        }}>
-            <p><input type="text" name='userName' placeholder='이름' value={userName} onChange={e => {
-                setName(e.target.value)
-            }} /></p>
-            <p><input type="email" name='userMail' placeholder='이메일' value={userMail} onChange={e => {
-                setMail(e.target.value)
-            }} /></p>
-            <p><input type="submit" value="Update" /></p>
-        </form>
-    </div>
-
-}
-
-
-
 
 function App() {
 
-    // hook을 사용할때에는 제너릭 명시를 하지 않아도 된다고 함
-    const [mode, setMode] = useState('INIT')
+    let content: ReactElement | null = null
+    let context: ReactElement | null = null
+
+    let uName: string = '' // 이름, 메일 찾기위한 변수
+    let uMail: string = ''
+
+    const [mode, setMode] = useState(ViewMode.INIT)
     const [id, setId] = useState(1)
     const [nextId, setNextId] = useState(4)
     const [users, setUsers] = useState([
@@ -125,143 +41,112 @@ function App() {
         { id: 3, userName: '홍길자', userMail: 'hong7@naver.com' }
     ]) // 초기 Dummy Data
 
-
-    let content: ReactElement | null = null
-    let context: ReactElement | null = null
-    let flag: number
-
-    const onCreate = (uName: string, uMail: string) => {
+    const onCreate = (uName: string, uMail: string): void => {
 
         const newUser = { id: nextId, userName: uName, userMail: uMail }
 
-        // 멀티 스레드 환경에서는 문제가 될 수 있을것 같다. 어떻게 해야할까?
-        flag = preCheck(newUser)
-        // update와 같은 구조인데 다른동작. 뭔가 추상화시키고 싶다.
-        switch (flag) {
-            case -1:
-                const newUsers = [...users]
-                newUsers.push(newUser)
-                setUsers(newUsers)
-                setMode('READ')
-                setId(nextId)
-                setNextId(nextId + 1)
-                break
-            case 3:
-                alert('이미 동일한 유저가 존재합니다.')
-                break
-            case 2:
-                alert('중복된 이름이 존재합니다.\n 다른 이름을 등록해주세요.')
-                break
-            case 1:
-                alert('중복된 Mail이 존재합니다.\n 다른 Mail을 등록해주세요.')
-                break
+        /*
+           update, create 컴포넌트에서 마지막 입력 동작에 대해 중복검사 결과값을 반영하지 못하고 값이 넘어와,
+           중복되는 마지막 field(email)에 대해서 체크하지 못하고 생성이 되어버리는 문제를
+           onCreate 함수 내에서 한번 더 검사함으로써 해결
+        */
+        if (preCheck(uName, uMail) === StateCode.CHECK_OK) {
+            const newUsers = [...users]
+            newUsers.push(newUser)
+            setUsers(newUsers)
+            setMode(ViewMode.READ)
+            setId(nextId)
+            setNextId(nextId + 1)
         }
     }
 
-    const onUpdate = (uName: string, uMail: string) => {
+    const onUpdate = (uName: string, uMail: string): ReactElement | void => {
 
         const newUsers = [...users] // 배열을 그대로 복사
         const updatedUser = { id: id, userName: uName, userMail: uMail }
 
-        flag = preCheck(updatedUser)
-        switch (flag) {
-            case -1:
-                for (let i = 0; i < newUsers.length; i++) {
-                    if (newUsers[i].id === id) {
-                        newUsers[i] = updatedUser
-                        break
-                    }
+        // onCreate 함수와 동일한 맥락
+        if (preCheck(uName, uMail, id) === StateCode.CHECK_OK) {
+            for (let i = 0; i < newUsers.length; i++) {
+                if (newUsers[i].id === id) {
+                    newUsers[i] = updatedUser
+                    break
                 }
-                setUsers(newUsers)
-                setMode('READ')
-                break
-            case 3:
-                alert('이미 동일한 유저가 존재합니다.')
-                break
-            case 2:
-                alert('중복된 이름이 존재합니다.\n 다른 이름을 등록해주세요.')
-                break
-            case 1:
-                alert('중복된 Mail이 존재합니다.\n 다른 Mail을 등록해주세요.')
-                break
+            }
+            setUsers(newUsers)
+            setMode(ViewMode.READ)
         }
     }
 
-    const preCheck = (user: user): number => {
+    const preCheck = (uName: string, uMail: string, uid?: number): StateCode => {
 
-        for (let i = 0; i < users.length; i++) {
+        if (uid === undefined) { // Create컴포넌트에서 중복검사를하는경우 (생성 이전이기 때문에 id가 없음)
 
-            // 매개변수로 넘어온 id가 현재 존재하는 배열의 유저와 다를 때, 즉 자기 자신이 아닌 column일 때
-            if (user.id !== users[i].id) {
+            for (let i = 0; i < users.length; i++) {
 
-                // 이름 | 이메일이 중복되는 경우 + 둘 다 중복되는 경우
-                if ((user.userName === users[i].userName) && (user.userMail === users[i].userMail)) return 3
-                else if (user.userName === users[i].userName) return 2
-                else if (user.userMail === users[i].userMail) return 1
+                if ((uName === users[i].userName) && (uMail === users[i].userMail)) return StateCode.DUPLICATION_ALL
+                else if (uName === users[i].userName) return StateCode.DUPLICATION_NAME
+                else if (uMail === users[i].userMail) return StateCode.DUPLICATION_MAIL
             }
+
+        } else { // Update에서 중복검사하는경우 (이미 존재하는 정보이기 때문에 id존재)
+
+            for (let i = 0; i < users.length; i++) {
+
+                if (uid !== users[i].id) {
+
+                    if ((uName === users[i].userName) && (uMail === users[i].userMail)) return StateCode.DUPLICATION_ALL
+                    else if (uName === users[i].userName) return StateCode.DUPLICATION_NAME
+                    else if (uMail === users[i].userMail) return StateCode.DUPLICATION_MAIL
+                }
+            }
+
         }
         // 해당 구문이 실행되어 함수가 종료된다면, 중복값이 없음
-        return -1
+        return StateCode.CHECK_OK
+    }
+
+    const findUser = (id: number) => {
+        for (let i = 0; i < users.length; i++) {
+            if (users[i].id === id) {
+                uName = users[i].userName
+                uMail = users[i].userMail
+            }
+        }
     }
 
 
-    if (mode === 'INIT') {
+    if (mode === ViewMode.INIT) {
+        content = <Article userName='hello' userMail='world' />
 
-        // children 속성이 뭘까...
-        content = <Article userName='hello' userMail='world'> </Article>
-
-    } else if (mode === 'READ') {
-
-        // 특정 유저가 선택이 되어 상태가 변경이 됐을때, 해당되는 객체를 props로 넘겨 렌더링
-        // 특정 state T일때, setting되어있는 id값을 찾아, 그 값으로 동작
-        let uName, uMail = null
-        for (let i = 0; i < users.length; i++) {
-            if (users[i].id === id) {
-                uName = users[i].userName
-                uMail = users[i].userMail
-            }
-        }
-
-        content = <Article userName={uName} userMail={uMail}></Article>
+    } else if (mode === ViewMode.READ) {
+        findUser(id) // 읽어들일 객체를 찾고, 컴포넌트의 props로 넘기기
+        content = <Article userName={uName} userMail={uMail} />
         context = <li><a href={'/update/' + id} onClick={e => {
             e.preventDefault()
-            setMode('UPDATE')
+            setMode(ViewMode.UPDATE)
         }}>Update</a></li>
 
-    } else if (mode === 'CREATE') {
+    } else if (mode === ViewMode.CREATE) {
+        content = <Create onCreate={onCreate} preCheck={preCheck} />
 
-        content = <Create onCreate={onCreate}></Create>
-
-    } else if (mode === 'UPDATE') {
-
-        // 이름과 이메일을 찾기위한 변수
-        let uName = ''
-        let uMail = ''
-
-        // 현재 상태에 저장된 id값인경우 (READ로 보여지고 있는 객체id) 
-        for (let i = 0; i < users.length; i++) {
-            if (users[i].id === id) {
-                uName = users[i].userName
-                uMail = users[i].userMail
-            }
-        }
-        content = <Update userName={uName} userMail={uMail} onUpdate={onUpdate}></Update>
+    } else if (mode === ViewMode.UPDATE) {
+        findUser(id) // 수정할 객체를 찾고, 컴포넌트의 props로 콜백함수와 함께 넘기기 
+        content = <Update id={id} userName={uName} userMail={uMail} onUpdate={onUpdate} preCheck={preCheck} />
     }
 
     return (
         <>
-            {/* async 쓰면 에러가 없어지는데, 왜그런지 공부하기 */}
-            <Header title="Hello" onChangeMode={async () => setMode('INIT')}></Header>
-            <List userList={users} onChangeMode={async (id) => {
-                // 특정 유저를 클릭하면, 모드를 변경하고 해당하는 unique한 id를 가진 객체를 가져오기
-                setMode('READ')
+            <Header title="Hello" onChangeMode={async () => setMode(ViewMode.INIT)} />
+            <List userList={users} onChangeMode={async (id: number) => {
+                setMode(ViewMode.READ)
                 setId(id)
-            }}></List>
+            }} />
             {content}
             <ul>
                 <li><a href="/create" onClick={e => {
                     e.preventDefault()
-                    setMode('CREATE')
+                    setMode(ViewMode.CREATE)
                 }}>등록하기</a></li>
                 {context}
             </ul>
