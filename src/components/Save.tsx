@@ -34,6 +34,7 @@ function Save(props: {
             if (curCode === StateCode.CHECK_OK) {
                 props.onSave(tempUser)
             }
+
         }}>
             <p style={curCode === StateCode.DUPLICATION_ALL ? style : undefined}>
 
@@ -59,5 +60,4 @@ function Save(props: {
         </form>
     </div>
 }
-
 export default Save

@@ -1,11 +1,10 @@
+import { lstat } from 'fs/promises'
 import React, { ReactElement, useState } from 'react'
 import './App.css'
 import Article from './components/Article'
-import Create from './components/Create'
 import Header from './components/Header'
 import List from './components/List'
 import Save from './components/Save'
-import Update from './components/Update'
 import User from './domains/User'
 import StateCode from './enums/StateCode'
 
@@ -29,6 +28,7 @@ enum ViewMode {
 // 렌더링 될 때 마다 초기화가 된다. 사용을 지양한다.
 // let 변수 안쓰는 이유가 렌더링 될 때마다 초기화가 되기 때문인걸까?
 // TS에서는 비동기적 특성 때문에 메소드체이닝을 사용하면 문제가 많이 일어나는걸까?
+// const자료형을 Java제너릭처럼 Setting할 수 있다!
 
 let renderCounter = 0
 function App() {
@@ -36,7 +36,6 @@ function App() {
     renderCounter++
 
     //Refactor
-    // const자료형을 어떻게 셋팅해야하지? 제너릭!!
     const [user, setUser] = useState<User>({ id: undefined!, userName: 'hello', userMail: 'world' })
     const [mode, setMode] = useState<ViewMode>(ViewMode.INIT)
     const [id, setId] = useState<number | undefined>(1)
@@ -49,9 +48,10 @@ function App() {
         { id: 3, userName: '홍길자', userMail: 'hong7@naver.com' }
     ]) // 초기 Dummy Data
 
+    // Create / Update 를 하나의 함수에서 핸들링
     const onSave = (user: User): void => {
 
-        if (user.id === undefined) {
+        if (user.id === undefined) { // Create
 
             const newUser = { id: nextId, userName: user.userName, userMail: user.userMail }
             const newUsers = [...users]
@@ -62,9 +62,9 @@ function App() {
             setId(nextId)
             setNextId(nextId + 1)
 
-        } else {
+        } else { // Update
 
-            const newUsers = [...users] // 배열을 그대로 복사
+            const newUsers = [...users]
             const updatedUser = { id: id, userName: user.userName, userMail: user.userMail }
             for (let i = 0; i < newUsers.length; i++) {
                 if (newUsers[i].id === id) {
@@ -75,7 +75,6 @@ function App() {
             setUsers(newUsers)
             setMode(ViewMode.READ)
         }
-
     }
 
     const preCheck = (user: User): StateCode => {
@@ -105,6 +104,7 @@ function App() {
         }
         return users[idx]
     }
+
 
     //Refactoring to Func 
     const renderContent = () => {
@@ -151,46 +151,3 @@ function App() {
     )
 }
 export default App
-
-
-
-
-
-
-
-
-
-    // const onCreate = (user: User): void => {
-
-    //     const newUser = { id: nextId, userName: user.userName, userMail: user.userMail }
-
-    //     /*
-    //        update, create 컴포넌트에서 마지막 입력 동작에 대해 중복검사 결과값을 반영하지 못하고 값이 넘어와,
-    //        중복되는 마지막 field(email)에 대해서 체크하지 못하고 생성이 되어버리는 문제를
-    //        onCreate 함수 내에서 한번 더 검사함으로써 해결
-    //     */
-    //     const newUsers = [...users]
-    //     newUsers.push(newUser)
-    //     setUsers(newUsers)
-    //     setMode(ViewMode.READ)
-    //     setId(nextId)
-    //     setNextId(nextId + 1)
-    // }
-
-    // const onUpdate = (user: User): void => {
-
-    //     const newUsers = [...users] // 배열을 그대로 복사
-    //     const updatedUser = { id: id, userName: user.userName, userMail: user.userMail }
-
-    //     // onCreate 함수와 동일한 맥락
-    //     //if (preCheck(updatedUser) === StateCode.CHECK_OK) {
-    //     for (let i = 0; i < newUsers.length; i++) {
-    //         if (newUsers[i].id === id) {
-    //             newUsers[i] = updatedUser
-    //             break
-    //         }
-    //     }
-    //     setUsers(newUsers)
-    //     setMode(ViewMode.READ)
-    //     //}
-    // }
