@@ -2,9 +2,9 @@ import React, { useState } from 'react'
 import User from '../domains/User'
 import StateCode from '../enums/StateCode'
 
-function Update(props: {
-    user: User,
-    onUpdate: (user: User) => void,
+function Save(props: {
+    user: User | undefined,
+    onSave: (user: User) => void,
     preCheck: (user: User) => StateCode
 }) {
 
@@ -14,25 +14,25 @@ function Update(props: {
     }
 
     // 초기 State설정 
-    const [anUser, setUser] = useState<User>()
-    const [userName, setName] = useState(props.user.userName)
-    const [userMail, setMail] = useState(props.user.userMail)
+    const [userName, setName] = useState<string | undefined>(props.user !== undefined ? props.user.userName : undefined)
+    const [userMail, setMail] = useState<string | undefined>(props.user !== undefined ? props.user.userMail : undefined)
     const [curCode, setCode] = useState(StateCode.WAIT_CONFIRM)
 
     return <div>
-        <h2>Update</h2>
+        <h2>입력창</h2>
         <form onSubmit={e => {
+
             e.preventDefault()
 
-            const tempUser = {
+            const tempUser: User = {
                 userName: userName,
                 userMail: userMail,
-                id: props.user.id
+                id: props.user !== undefined ? props.user.id : undefined
             }
             setCode(props.preCheck(tempUser))
 
             if (curCode === StateCode.CHECK_OK) {
-                props.onUpdate(tempUser)
+                props.onSave(tempUser)
             }
         }}>
             <p style={curCode === StateCode.DUPLICATION_ALL ? style : undefined}>
@@ -53,11 +53,11 @@ function Update(props: {
                 </p>
                 {curCode === StateCode.DUPLICATION_MAIL ? '중복된 이메일이 존재합니다.' : ''}
 
-                <p><input type="submit" value="수정" /></p>
+                <p><input type="submit" value="제출" /></p>
             </p><br />
             {curCode === StateCode.DUPLICATION_ALL ? '동일한 유저가 이미 존재합니다.' : ''}
         </form>
     </div>
 }
 
-export default Update
+export default Save

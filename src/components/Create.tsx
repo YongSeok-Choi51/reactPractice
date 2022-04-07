@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import user from '../domains/User'
+import User from '../domains/User'
 import StateCode from '../enums/StateCode'
 
 function Create(props: {
-    onCreate: (user: user) => void,
-    preCheck: (user: user) => StateCode
+    onCreate: (user: User) => void,
+    preCheck: (user: User) => StateCode
 }) {
 
     const style = {
@@ -26,11 +26,13 @@ function Create(props: {
 
             e.preventDefault()
 
-            const tempUser = {
+            //User 인터페이스로 Wrapping
+            const tempUser: User = {
                 userName: userName,
                 userMail: userMail,
                 id: undefined!
             }
+
             setCode(props.preCheck(tempUser))
             console.log("stateValue ", userName, userMail, "formValue", e.currentTarget.userName.value, e.currentTarget.userMail.value)
             console.log(curCode)
@@ -46,7 +48,8 @@ function Create(props: {
                 <p style={curCode === StateCode.DUPLICATION_NAME ? style : undefined}>
                     <input type="text" name='userName' placeholder='이름' onChange={e => {
                         setName(e.target.value)
-                        //setCode(props.preCheck(userName, userMail, undefined!))
+                        // 이름을 set하고 해당값을 바로 써먹으면 싱크가 맞지 않는다 하셨음
+                        // 할거면 변수에 할당을하고 나서 setState를 하던가 해라!
                     }} />
                 </p>
                 {curCode === StateCode.DUPLICATION_NAME ? '같은 이름의 사용자가 존재합니다.' : ''}
@@ -55,7 +58,6 @@ function Create(props: {
                 <p style={curCode === StateCode.DUPLICATION_MAIL ? style : undefined}>
                     <input type="email" name='userMail' placeholder='이메일' onChange={e => {
                         setMail(e.target.value)
-                        //setCode(props.preCheck(userName, userMail, undefined!))
                     }} />
                 </p>
                 {curCode === StateCode.DUPLICATION_MAIL ? '중복된 이메일이 존재합니다.' : ''}

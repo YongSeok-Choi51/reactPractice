@@ -1,13 +1,17 @@
 import React, { ReactElement } from 'react'
-import user from '../domains/User'
+import User from '../domains/User'
 
-// any 타입으로 변경하여 children 바인딩 문제 해결... 근본적인 솔루션이 아니다.  -> Question
-function Article(user: user): ReactElement {
+// 객체를 넘겨준다 할때 매개변수를 이런 식으로 할당할 것. 
+function Article({ user }: { user: User }): ReactElement {
 
     return <article>
         <h2>{user.userName}</h2>
         {user.userMail}
     </article>
+
+}
+
+Article.defaultProps = {
 
 }
 
