@@ -1,55 +1,46 @@
 import React, { useState } from 'react'
 import './App.css'
-import Beverage from './domains/Beverage'
+
 import Uylmoo from './domains/Uylmoo'
 import Coffee from './domains/Coffee'
 import LemonTee from './domains/LemonTee'
+import Beverage from './interfaces/Beverage'
+import Beverages from './components/Beverages'
+import CoffeeType from './enums/CoffeeType'
 
-/**
- * 음료 레시피
- * 
- * 종류별 (커피, 레몬차, 율무차)
- * 물 100ml
- * 파우더 15g
- * 컵 1개
- * 클래스 메소드로 사용해서 바꿔보자!
- */
 
 function App() {
 
-    const style = {
-        borderRadius: '5px',
-        margin: '15px 30px',
-        width: '150px'
-    }
-
     const [sales, setSales] = useState<number>(0)
-    const [coffee, setCoffee] = useState<Coffee>(new Coffee({ water: 1000, powder: 200, cup: 20 }))
-    const [lemon, setLemon] = useState<LemonTee>(new LemonTee({ water: 1000, powder: 200, cup: 20 }))
+    const [coffee, setCoffee] = useState<Coffee>(new Coffee({ water: 1000, powder: 200, cup: 20, ice: 9 }, 200, 300)) // sugar, milkPowder
+    const [lemon, setLemon] = useState<LemonTee>(new LemonTee({ water: 1000, powder: 200, cup: 20, ice: 9 }))
     const [uylmoo, setUylmoo] = useState<Uylmoo>(new Uylmoo({ water: 1000, powder: 200, cup: 20 }))
 
-    const sale = (beverage: Beverage) => {
 
-        beverage.minusIngred({ water: 100, powder: 15, cup: 1 })
-        if (beverage.isAvailable()) setSales(sales + 200)
+    const onOrder = (beverage: Beverage, coffeeType: CoffeeType | undefined, hotAndCold: boolean | undefined) => {
 
+        let result = false
         if (beverage instanceof Coffee) {
-            const tempBeverage = beverage.getProps
-            setCoffee(new Coffee(tempBeverage))
+            result = beverage.order(coffeeType, hotAndCold)
+            if (result) setSales(sales + 200)
         } else if (beverage instanceof LemonTee) {
-            const tempBeverage = beverage.getProps
-            setLemon(new LemonTee(tempBeverage))
+            result = beverage.order(hotAndCold)
+            if (result) setSales(sales + 200)
         } else if (beverage instanceof Uylmoo) {
-            const tempBeverage = beverage.getProps
-            setUylmoo(new Uylmoo(tempBeverage))
+            result = beverage.order()
+            if (result) setSales(sales + 200)
         }
+    }
+
+    const renderFor = (beverage: Beverage) => {
+        return <Beverages beverage={beverage} onOrder={onOrder} />
     }
 
     const renderContent = () => {
         const arr = []
-        if (coffee.isAvailable()) arr.push(<button style={style} onClick={e => { sale(coffee) }}>Coffee</button>)
-        if (lemon.isAvailable()) arr.push(<button style={style} onClick={e => { sale(lemon) }}>LemonTee</button>)
-        if (uylmoo.isAvailable()) arr.push(<button style={style} onClick={e => { sale(uylmoo) }}>Uylmoo</button>)
+        arr.push(renderFor(coffee))
+        arr.push(renderFor(lemon))
+        arr.push(renderFor(uylmoo))
         return arr
     }
 

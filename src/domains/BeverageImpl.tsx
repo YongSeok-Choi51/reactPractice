@@ -1,10 +1,8 @@
-import DrinkType from '../interfaces/ColdType'
-import Beverage from '../interfaces/Beverage'
 import AvailableType from '../enums/AvailableType'
+import Beverage from '../interfaces/Beverage'
+import ColdType from '../interfaces/ColdType'
 
-
-// minusIngred, isAvailable, cost는 중복됨. 
-class Uylmoo implements Beverage {
+abstract class BeverageImpl implements Beverage, ColdType {
 
 
     cost = { water: 100, cup: 1, powder: 15 }
@@ -12,11 +10,19 @@ class Uylmoo implements Beverage {
     water: number
     cup: number
     powder: number
+    ice: number
 
-    constructor(props: { water: number, cup: number, powder: number }) {
+    constructor(props: { water: number, cup: number, powder: number, ice: number }) {
         this.water = props.water
         this.cup = props.cup
         this.powder = props.powder
+        this.ice = props.ice
+    }
+
+    addIce(ice: number): boolean {
+        if (this.ice < 0) return false
+        this.ice -= ice
+        return true
     }
 
     minusIngredient(props: { water: number, cup: number, powder: number }): boolean {
@@ -34,17 +40,9 @@ class Uylmoo implements Beverage {
         return this.water < 0 || this.cup < 0 || this.powder < 0 ? true : false
     }
 
+    abstract checkState(): AvailableType
+    abstract order(): boolean
 
-    // for lendering
-    checkState(): AvailableType {
-        if (this.isAvailable()) return AvailableType.UNAVAILABLE
-        return AvailableType.BOTH_OK
-    }
-    /* 내부 구현 메소드 끝  */
-
-
-    order(): boolean {
-        return this.minusIngredient(this.cost)
-    }
 }
-export default Uylmoo
+
+export default BeverageImpl
