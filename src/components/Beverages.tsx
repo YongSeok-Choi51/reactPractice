@@ -1,17 +1,17 @@
 import React, { ReactElement, useState } from 'react'
+import BeverageImpl from '../domains/BeverageImpl'
 import Coffee from '../domains/Coffee'
-import LemonTee from '../domains/LemonTee'
+import Lemon from '../domains/Lemon'
 import Uylmoo from '../domains/Uylmoo'
 import AvailableType from '../enums/AvailableType'
 import CoffeeType from '../enums/CoffeeType'
-import Beverage from '../interfaces/Beverage'
 
 // onSubmit 함수 추출하면 정말 좋겠다. 
-function Beverages(props: { beverage: Beverage, onOrder: (beverage: Beverage, coffeeType: CoffeeType | undefined, hotAndCold: boolean | undefined) => void }) {
+function Beverages(props: { beverage: BeverageImpl, onOrder: (beverage: BeverageImpl, coffeeType?: CoffeeType, hotAndCold?: boolean) => void }) {
 
     const state = props.beverage.checkState()
     if (props.beverage instanceof Coffee) {
-
+        // 커피 타입인 경우의 Form
         switch (state) {
             case AvailableType.BOTH_OK:
                 return <form onSubmit={e => {
@@ -61,7 +61,8 @@ function Beverages(props: { beverage: Beverage, onOrder: (beverage: Beverage, co
                 return <></>
         }
 
-    } else if (props.beverage instanceof LemonTee) {
+    } else if (props.beverage instanceof Lemon) {
+        // 레몬차 타입인 경우의 Form
         switch (state) {
             case AvailableType.UNAVAILABLE:
                 return <></>
@@ -95,6 +96,7 @@ function Beverages(props: { beverage: Beverage, onOrder: (beverage: Beverage, co
         }
 
     } else if (props.beverage instanceof Uylmoo) {
+        // 율무차 타입인 경우의 Form
         switch (state) {
             case AvailableType.UNAVAILABLE:
                 return <></>
@@ -110,6 +112,6 @@ function Beverages(props: { beverage: Beverage, onOrder: (beverage: Beverage, co
                 </form>
         }
     }
-    return null
+    return <></> // 빈 태그 리턴으로 에러방지.
 }
 export default Beverages

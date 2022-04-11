@@ -1,13 +1,13 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+import App from './APP'
 import './index.css'
-import App from './App'
+
 import reportWebVitals from './reportWebVitals'
-import AApp from './AAPP'
 
 ReactDOM.render(
     <React.StrictMode>
-        <AApp />
+        <App />
     </React.StrictMode>,
     document.getElementById('root')
 )
