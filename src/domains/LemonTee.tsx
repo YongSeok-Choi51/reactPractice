@@ -38,7 +38,10 @@ class LemonTee implements Beverage, ColdType {
         this.ice -= ice
         return true
     }
+    /* 내부 구현 메소드 끝  */
 
+
+    // 외부 제공 인터페이스
     checkState(): AvailableType {
 
         if (this.isAvailable()) {
@@ -48,11 +51,7 @@ class LemonTee implements Beverage, ColdType {
         }
         return AvailableType.BOTH_OK
     }
-    /* 내부 구현 메소드 끝  */
 
-
-
-    // 주문 당시의 일회성 값으로 사용하고, 인스턴스의 어트리뷰트로 굳이 상태를 유지해야하는지 의문
     order(coldType: boolean | undefined): boolean {
 
         // 먼저 음료 제조

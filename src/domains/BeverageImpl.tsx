@@ -1,11 +1,14 @@
 import AvailableType from '../enums/AvailableType'
+import CoffeeType from '../enums/CoffeeType'
 import Beverage from '../interfaces/Beverage'
 import ColdType from '../interfaces/ColdType'
 
 abstract class BeverageImpl implements Beverage, ColdType {
 
 
+    // 음료 제조 값 객체
     cost = { water: 100, cup: 1, powder: 15 }
+    cost_ice = 3
 
     water: number
     cup: number
@@ -41,7 +44,7 @@ abstract class BeverageImpl implements Beverage, ColdType {
     }
 
     abstract checkState(): AvailableType
-    abstract order(): boolean
+    abstract order(coffeeType?: CoffeeType, coldType?: boolean): boolean
 
 }
 

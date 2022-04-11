@@ -34,14 +34,14 @@ class Uylmoo implements Beverage {
         return this.water < 0 || this.cup < 0 || this.powder < 0 ? true : false
     }
 
+    /* 내부 구현 메소드 끝  */
 
-    // for lendering
+
+    // 외부 제공 인터페이스 
     checkState(): AvailableType {
         if (this.isAvailable()) return AvailableType.UNAVAILABLE
         return AvailableType.BOTH_OK
     }
-    /* 내부 구현 메소드 끝  */
-
 
     order(): boolean {
         return this.minusIngredient(this.cost)

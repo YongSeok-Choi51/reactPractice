@@ -54,6 +54,10 @@ class Coffee implements Beverage, ColdType {
         return true
     }
 
+    /* 내부 구현 메소드 끝  */
+
+
+    //외부 제공 인터페이스(client는 해당 인터페이스로만 상호작용할수 있다.)
     // 얼음 떨어져도, 따듯한커피는 제조가 가능해야한다. 
     // 커피 객체의 재고정보를 확인하는 상태. 하나라도 부족하다면, 음료를 제조할 수 없다.
     checkState(): AvailableType {
@@ -62,10 +66,6 @@ class Coffee implements Beverage, ColdType {
         else return AvailableType.BOTH_OK
     }
 
-    /* 내부 구현 메소드 끝  */
-
-
-    //외부 제공 인터페이스(client는 해당 인터페이스로만 상호작용할수 있다.)
     order(coffeeType: CoffeeType | undefined, coldType: boolean | undefined): boolean {
         const resultWithMinus = this.minusIngredient(this.cost)
         let resultWithCond = false

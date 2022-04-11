@@ -17,9 +17,10 @@ function App() {
     const [uylmoo, setUylmoo] = useState<Uylmoo>(new Uylmoo({ water: 1000, powder: 200, cup: 20 }))
 
 
-    const onOrder = (beverage: Beverage, coffeeType: CoffeeType | undefined, hotAndCold: boolean | undefined) => {
+    const onOrder = (beverage: Beverage, coffeeType?: CoffeeType, hotAndCold?: boolean) => {
 
         let result = false
+        // 성공일 경우에만 판매금액 갱신.
         if (beverage instanceof Coffee) {
             result = beverage.order(coffeeType, hotAndCold)
             if (result) setSales(sales + 200)
