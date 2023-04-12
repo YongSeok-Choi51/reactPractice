@@ -24,7 +24,6 @@ export default class UserStore {
         return this.userArray;
     };
 
-    // type 없으니 뭐가 넘어오는지 몰라서 불편함.
     detail = (targetUser) => {
         this.selected = targetUser;
         console.log("this.selelcted", this.selected);

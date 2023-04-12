@@ -1,33 +1,35 @@
 
+import { useState } from 'react';
 import './App.css';
-import { useState, useEffect } from 'react';
-import UserStore from './UserStore';
+import UserStore, { DEFAULT_USER_FORMAT } from './UserStore';
 
 const SaveForm = (props) => {
 
     const { selected, onSubmit } = props;
+    console.log("props", props);
     const [userInput, setUserInput] = useState({
         id: selected.id,
         userMail: selected.userMail,
         userName: selected.userMail
     });
 
+    const onInputChange = (e) => {
+        userInput[e.target.getAttribute("name")] = e.target.value;
+        setUserInput((userInput) => ({ ...userInput }));
+        // console.log(userInput);
+    };
+
     return (
         <>
             <div>
-                <h2>Update</h2>
+                <h2>{userInput.id === undefined ? "Update" : "Create"}</h2>
                 <form onSubmit={e => {
                     e.preventDefault();
+                    // console.log("onSubmit", userInput);
                     onSubmit(userInput);
                 }}>
-                    <p><input type="text" name='userName' placeholder='이름' value={userInput.userName} onChange={e => {
-                        console.log("target E", e);
-                        setUserInput(e.target.value);
-                    }} /></p>
-                    <p><input type="email" name='userMail' placeholder='이메일' value={userInput.userMail} onChange={e => {
-                        setUserInput(e.target.value);
-                    }} /></p>
-                    {/* <p><input type="submit" value="Update" /></p> */}
+                    <p><input type="text" name='userName' placeholder='이름' value={userInput.userName} onChange={onInputChange} /></p>
+                    <p><input type="email" name='userMail' placeholder='이메일' value={userInput.userMail} onChange={onInputChange} /></p>
                     <button type='submit'>Submit</button>
                 </form>
             </div>
@@ -43,7 +45,7 @@ const App = () => {
         { id: 3, userName: '홍길자', userMail: 'hong7@naver.com' }
     ]);
 
-    const [selected, setSelected] = useState();
+    const [selected, setSelected] = useState({ ...DEFAULT_USER_FORMAT });
     return (
         <div>
             <div>
@@ -62,21 +64,11 @@ const App = () => {
             <div>
                 {selected && selected.userName}
                 {store.selected && store.selected.userName}
-                {/* {store.selected && (
-                    <>
-                        {selected.userName}
-                    </>
-                )} */}
             </div>
             <div>
                 <button onClick={store.test}>테스트</button>
             </div>
             <div>
-                {selected === undefined ? (<button> </button>) : <></>}
-
-                <div>
-
-                </div>
                 <SaveForm selected={selected} onSubmit={store.onSubmit} />
             </div>
         </div>
