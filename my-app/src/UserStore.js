@@ -17,7 +17,7 @@ export default class UserStore {
         this.userArray = initialArray;
         this.selected = undefined;
         this.processing = false;
-        this.autoIncrement = 0;
+        this.autoIncrement = 4;
     }
 
     getUserArray = () => {
@@ -35,7 +35,9 @@ export default class UserStore {
                 alert('동일한 이름이 이미 존재합니다.');
                 return;
             }
+            value.id = this.autoIncrement;
             this.userArray.push(value);
+            this.autoIncrement += 1;
         } else { // UPdate
             if (this.userArray.filter(user => user.id !== value.id && user.userName === value.userName).length > 0) {
                 alert('동일한 이름이 이미 존재합니다.');
