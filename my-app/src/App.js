@@ -1,80 +1,71 @@
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import './App.css';
-import UserStore from './UserStore';
-
-// 모드가 바뀔떄 바뀐 props의 값으로 input의 초기값이 결정되지 못하는 경우
-const SaveForm = (props) => {
-
-    const { selected, onSubmit } = props;
-    console.log("props", props);
-    const [userInput, setUserInput] = useState(() => ({ ...selected }));
-    console.log("saveForm userInput", userInput);
-
-    const inputElements = useCallback((name, email) => (
-        <>
-            <p><input type="text" name='userName' placeholder='이름' value={userInput.userName} onChange={onInputChange} /></p>
-            <p><input type="email" name='userMail' placeholder='이메일' value={userInput.userMail} onChange={onInputChange} /></p>
-        </>
-    ), [selected]);
-
-    const onInputChange = (e) => {
-        userInput[e.target.getAttribute("name")] = e.target.value;
-        setUserInput((userInput) => ({ ...userInput }));
-        // console.log(userInput);
-    };
-
-    return (
-        <>
-            <div>
-                <h2>{selected.id === undefined ? "Create" : "Update"}</h2>
-                <form onSubmit={e => {
-                    e.preventDefault();
-                    // console.log("onSubmit", userInput);
-                    onSubmit(userInput);
-                }}>
-                    {/* {inputElements()} */}
-                    <p><input type="text" name='userName' placeholder='이름' value={userInput.userName} onChange={onInputChange} /></p>
-                    <p><input type="email" name='userMail' placeholder='이메일' value={userInput.userMail} onChange={onInputChange} /></p>
-                    <button type='submit'>Submit</button>
-                </form>
-            </div>
-        </>
-    );
-};
 
 const DEFAULT_USER_FORMAT = {
     id: undefined,
-    name: undefined,
+    userName: undefined,
     userMail: undefined
+};
+
+const SaveForm = (props) => {
+
+    const { selected, onSubmit } = props;
+    const [userInput, setUserInput] = useState(selected);
+
+    const onInputChange = (e) => {
+        userInput[e.target.name] = e.target.value;
+        setUserInput((userInput) => ({ ...userInput }));
+    };
+
+    return (
+        <div>
+            <h2>{selected.id === undefined ? "Create" : "Update"}</h2>
+            <form onSubmit={e => {
+                e.preventDefault();
+                onSubmit(userInput);
+            }}>
+
+                <p><input type="text" name='userName' placeholder='이름' value={userInput === undefined ? "" : userInput.userName} onChange={onInputChange} /></p>
+                <p><input type="email" name='userMail' placeholder='이메일' value={userInput === undefined ? "" : userInput.userMail} onChange={onInputChange} /></p>
+                <button type='submit'>Submit</button>
+            </form>
+        </div>
+    );
 };
 
 const App = () => {
 
-    const [userArray, serUserArray] = useState([
+    const [selected, setSelected] = useState({ ...DEFAULT_USER_FORMAT });
+    const [open, setOpen] = useState(false);
+    const [userArray, setUserArray] = useState([
         { id: 1, userName: '홍길동', userMail: 'hong9@naver.com' },
         { id: 2, userName: '홍길순', userMail: 'hong8@naver.com' },
         { id: 3, userName: '홍길자', userMail: 'hong7@naver.com' }
     ]);
 
-    const [selected, setSelected] = useState({ ...DEFAULT_USER_FORMAT });
-
 
     const onSubmit = (value) => {
+        console.log("the value", value);
         if (value.id === undefined) { // create
-            if (this.userArray.filter(user => user.userName === value.userName).length > 0) {
+            if (userArray && userArray.filter(user => user.userName === value.userName).length > 0) {
                 alert('동일한 이름이 이미 존재합니다.');
                 return;
             }
-            this.userArray.push(value);
+            value.id = userArray[userArray.length - 1].id + 1;
+            setUserArray(() => [...userArray, value]);
         } else { // UPdate
-            if (this.userArray.filter(user => user.id !== value.id && user.userName === value.userName).length > 0) {
+            if (userArray && userArray.filter(user => user.id !== value.id && user.userName === value.userName).length > 0) {
                 alert('동일한 이름이 이미 존재합니다.');
                 return;
             }
-            const updateIdx = this.userArray.findIndex(user => user.id === value.id);
-            this.userArray[updateIdx] = value;
+            const updateIdx = userArray.findIndex(user => user.id === value.id);
+            userArray[updateIdx] = value;
+            setUserArray((userArray) => [...userArray]);
         }
+
+        setOpen(false);
+        setSelected({ ...DEFAULT_USER_FORMAT });
     };
 
     return (
@@ -84,15 +75,14 @@ const App = () => {
                 {userArray.map(user => (
                     <li key={user.id}>
                         <a id={user.id} href='/' onClick={evt => {
-                            // console.log("React.MouseEvent<HTMLAnchorElement, MouseEvent>", evt);
                             evt.preventDefault();
                             setSelected(user);
+                            setOpen(() => false);
                         }}>
-                            {selected.userName}
+                            {user.userName}
                         </a>
                     </li>
-                ))
-                }
+                ))}
             </div>
             <div>
                 {selected && (
@@ -101,14 +91,20 @@ const App = () => {
                         {selected.userMail}
                     </article>
                 )}
-                {/* {store.selected && store.selected.userName} */}
             </div>
             <div>
-                {!selected && (<button onClick={() => setSelected({ ...DEFAULT_USER_FORMAT })}>등록하기</button>)}
+                {selected && selected.id === undefined && (
+                    <button onClick={() => {
+                        setSelected({ ...DEFAULT_USER_FORMAT });
+                        setOpen(() => true);
+                    }}>등록하기</button>
+                )}
+                <br />
+                {selected && selected.id !== undefined && (<button onClick={() => setOpen(true)}>수정하기</button>)}
             </div>
 
             <div>
-                <SaveForm selected={selected} onSubmit={onSubmit} />
+                {selected && open && <SaveForm selected={selected} onSubmit={onSubmit} />}
             </div>
         </div>
     );
