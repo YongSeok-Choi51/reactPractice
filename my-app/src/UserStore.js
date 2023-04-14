@@ -1,10 +1,10 @@
 
 
-export const DEFAULT_USER_FORMAT = {
-    id: undefined,
-    name: undefined,
-    userMail: undefined
-};
+// export const DEFAULT_USER_FORMAT = {
+//     id: undefined,
+//     name: undefined,
+//     userMail: undefined
+// };
 
 export default class UserStore {
 

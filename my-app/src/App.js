@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import './App.css';
-import UserStore, { DEFAULT_USER_FORMAT } from './UserStore';
+import UserStore from './UserStore';
 
 // 모드가 바뀔떄 바뀐 props의 값으로 input의 초기값이 결정되지 못하는 경우
 const SaveForm = (props) => {
@@ -43,36 +43,56 @@ const SaveForm = (props) => {
     );
 };
 
+const DEFAULT_USER_FORMAT = {
+    id: undefined,
+    name: undefined,
+    userMail: undefined
+};
+
 const App = () => {
 
-    const store = new UserStore([
+    const [userArray, serUserArray] = useState([
         { id: 1, userName: '홍길동', userMail: 'hong9@naver.com' },
         { id: 2, userName: '홍길순', userMail: 'hong8@naver.com' },
         { id: 3, userName: '홍길자', userMail: 'hong7@naver.com' }
     ]);
 
-    const [selected, setSelected] = useState(undefined);
+    const [selected, setSelected] = useState({ ...DEFAULT_USER_FORMAT });
+
 
     const onSubmit = (value) => {
-        store.onSubmit(value);
-        setSelected(undefined);
+        if (value.id === undefined) { // create
+            if (this.userArray.filter(user => user.userName === value.userName).length > 0) {
+                alert('동일한 이름이 이미 존재합니다.');
+                return;
+            }
+            this.userArray.push(value);
+        } else { // UPdate
+            if (this.userArray.filter(user => user.id !== value.id && user.userName === value.userName).length > 0) {
+                alert('동일한 이름이 이미 존재합니다.');
+                return;
+            }
+            const updateIdx = this.userArray.findIndex(user => user.id === value.id);
+            this.userArray[updateIdx] = value;
+        }
     };
 
     return (
         <div>
             <h1>유저관리 시스템</h1>
             <div>
-                {store && store.getUserArray().map(user => (
+                {userArray.map(user => (
                     <li key={user.id}>
                         <a id={user.id} href='/' onClick={evt => {
                             // console.log("React.MouseEvent<HTMLAnchorElement, MouseEvent>", evt);
                             evt.preventDefault();
-                            store.detail(user);
                             setSelected(user);
-                        }}>{user.userName}
+                        }}>
+                            {selected.userName}
                         </a>
                     </li>
-                ))}
+                ))
+                }
             </div>
             <div>
                 {selected && (
@@ -86,11 +106,11 @@ const App = () => {
             <div>
                 {!selected && (<button onClick={() => setSelected({ ...DEFAULT_USER_FORMAT })}>등록하기</button>)}
             </div>
+
             <div>
-                {selected && (<SaveForm selected={selected} onSubmit={onSubmit} />)}
+                <SaveForm selected={selected} onSubmit={onSubmit} />
             </div>
         </div>
     );
 };
-
 export default App;
