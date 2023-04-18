@@ -1,14 +1,14 @@
-import AvailableType from '../enums/AvailableType'
+import AvailableType from '../enums/AvailableType';
 
 interface Beverage {
     // props
-    water: number
-    cup: number
-    powder: number
+    water: number;
+    cup: number;
+    powder: number;
 
     // methods
     //getProps(): {}
-    minusIngredient({ }): boolean
-    checkState(): AvailableType
+    minusIngredient({ }): boolean;
+    checkState(): AvailableType;
 }
-export default Beverage
+export default Beverage;
