@@ -1,0 +1,14 @@
+{
+    "name": "express-mysql-example",
+    "version": "0.0.1",
+    "description": "",
+    "main": "src/vendingMachineProgram.ts",
+    "scripts": {
+        "start": "node index"
+    },
+    "dependencies": {
+        "express": "^4.17.1",
+        "mysql": "^2.18.1",
+        "mysql2": "^3.2.3"
+    }
+}
