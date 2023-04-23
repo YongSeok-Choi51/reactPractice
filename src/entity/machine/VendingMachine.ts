@@ -4,6 +4,12 @@ export interface ProductEntity {
     price: number;
 }
 
+export interface ProductResourceEntity {
+    productId: number;
+    resourceId: number;
+    amount: number;
+}
+
 export interface VendingMachineEntity {
     id: number;
     name?: string;
@@ -12,6 +18,11 @@ export interface VendingMachineEntity {
 }
 
 export interface Menu {
+    id: number;
+    name: string;
+}
+
+export interface ResourceEntity {
     id: number;
     name: string;
 }

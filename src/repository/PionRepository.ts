@@ -18,8 +18,8 @@ export abstract class PionRepository {
         });
     };
 
-    abstract createTemplate(query?: any): any;
-    abstract readTemplate(query?: any): any;
-    abstract updateTemplate(query?: any): any;
+    abstract createTemplate(input?: string | number): any;
+    abstract readTemplate(input?: string | number): any;
+    abstract updateTemplate(input?: string | number): any;
 
 }

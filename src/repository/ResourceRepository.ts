@@ -1,3 +1,4 @@
+import { ResourceEntity } from '../entity/machine/VendingMachine';
 import { PionRepository } from './PionRepository';
 
 
@@ -6,14 +7,26 @@ export class ResourceRepository extends PionRepository {
         super();
     }
 
-    createTemplate(query: string) {
-        throw new Error('Method not implemented.');
+    async createTemplate(query: string) {
+
     }
-    readTemplate(query: string) {
-        throw new Error('Method not implemented.');
+
+    async readTemplate(query: string) {
+
+        const selectAllQuery = `
+            SELECT
+                r.id,
+                r.name
+            FROM pixar.resource
+        `;
+
+        const [rows, field] = await this._connection.query({ sql: selectAllQuery });
+        return rows && (rows as Array<ResourceEntity>).map(e => e);
+
     }
-    updateTemplate(query: string) {
-        throw new Error('Method not implemented.');
+
+    async updateTemplate(query: string) {
+
     }
 
 }
