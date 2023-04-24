@@ -1,3 +1,10 @@
+export interface VmResourceEntity {
+    id: number;
+    vendingMachineId: number;
+    resourceId: number;
+    amount: number;
+}
+
 export class VendingMachineResource {
     _resourceId: number;
     _vendingMachineId: number;

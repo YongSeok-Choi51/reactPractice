@@ -1,4 +1,4 @@
-import mysql from "mysql2/promise";
+import * as mysql from "mysql2/promise";
 
 export abstract class PionRepository {
 
@@ -6,7 +6,6 @@ export abstract class PionRepository {
 
     constructor() {
         this.initConnection();
-
     }
 
     async initConnection() {
@@ -18,8 +17,8 @@ export abstract class PionRepository {
         });
     };
 
-    abstract createTemplate(input?: string | number): any;
-    abstract readTemplate(input?: string | number): any;
-    abstract updateTemplate(input?: string | number): any;
+    abstract createTemplate(input?: any): any;
+    abstract readTemplate(input?: any): any;
+    abstract updateTemplate(input?: any): any;
 
 }

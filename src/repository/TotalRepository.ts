@@ -1,4 +1,5 @@
 import { DefaultVendingMachineResourceRepository } from './DefaultVendingMachineResourceRepository';
+import { OrderRepository } from './OrderRepository';
 import { ProductRepository } from './ProductRepository';
 import { ProductResourceRepository } from './ProductResourceRepository';
 import { ResourceRepository } from './ResourceRepository';
@@ -7,13 +8,14 @@ import { VendingMachineResourceRepository } from './VendingMachineResourceReposi
 
 
 // All repository
-export const TotalRepository: { [key: string]: any; } = {
+const TotalRepository: { [key: string]: any; } = {
     vm: new VendingMachineRepository(),
     vmResource: new VendingMachineResourceRepository(),
     defaultVmResource: new DefaultVendingMachineResourceRepository(),
     product: new ProductRepository(),
     productResource: new ProductResourceRepository(),
-    resource: new ResourceRepository()
+    resource: new ResourceRepository(),
+    order: new OrderRepository()
 };
 
 export default TotalRepository;

@@ -1,49 +1,73 @@
-
-import process from 'process';
-import * as readline from "readline/promises";
-// import * as rlp from 'readline/promises';
-import { promisify } from 'util';
+import * as readlinePromise from 'readline/promises';
+import * as process from 'process';
 import { VendingMachine } from './entity/machine/VendingMachine';
-import { BeverageSaleService } from './service/BeverageSaleService';
+import BeverageSaleService from './service/BeverageSaleService';
 
 
-const rl = readline.createInterface({
+// console.log("import result", process);
+// console.log("import readlineP", readlinePromise);
+// console.log("import promisify", promisify);
+// console.log("import readline", readline);
+
+// Todo! 
+// 자판기 판매 가능한 메뉴 보여주는 로직(객체 스스로가 판단하도록? 외부에서?).
+// 기존에 있는 벤딩머신이 있다면 그거 그대로 쓰게 하기
+// 프로덕트 리스트 벤딩머신 리소스 프로덕트 리소스 테이블 을 가지고 판매 가능한 목록 뽑아보기. (Database layer)  -> Opt
+
+let userAnswer: string = "";
+let userAmount: number = 0;
+const VENDING_MACHINE_LIST: Array<VendingMachine> = [];
+const rl = readlinePromise.createInterface({
     input: process.stdin,
     output: process.stdout,
 });
 
-// readline/promise module not found issue WIP...
-// 해당 함수가 사용자 입력을 받는 함수로 바뀔 예정
-const getUserInput = (guideLine?: string) => {
-
-    if (guideLine) {
-        console.log(guideLine);
-    }
-    return "Some string";
+const getUserInput = async (guideLine: string) => {
+    return await rl.question(guideLine);
 };
 
-const VENDING_MACHINE_LIST: Array<VendingMachine> = [];
+const calculateRemain = (userAmount: number) => {
+    let total = userAmount;
+    const coin = [500, 100, 50, 10, 1];
+
+    let result = "** 잔돈 **";
+    coin.forEach(e => {
+        const quotient = Math.floor(total / e);
+        total -= quotient * e;
+        result += `\n${e}원 ${quotient}개`;
+    });
+    return result + "\n** * * **";
+};
 
 const initVendingMachine = async () => {
-    const vm = await BeverageSaleService.vmService.createNewVendingMachine();
+    const vm = await BeverageSaleService.vmManageService.createNewVendingMachine();
     VENDING_MACHINE_LIST.push(vm);
 };
 
-
 const showMenu = () => {
-    console.log("Select menu!");
-    console.log("Enter the Menu Name you chosen");
-    console.log("**********************");
-    VENDING_MACHINE_LIST[0]._menuList.forEach((e, idx) => {
-        console.log(`${idx}. ${e.name}, Price: ${e.price}`);
-    });
-    console.log("**********************");
+    console.log("");
+    console.log("********* Menu List *********");
+    console.log("*****************************");
+    VENDING_MACHINE_LIST[0]._menuList.forEach((e, idx) => { console.log(`${idx + 1}. ${e.name}, Price: ${e.price}`); });
+    console.log("*****************************");
+    console.log(`현재금액 :${userAmount}`);
 };
 
-const saleBeverage = () => {
-
+const saleBeverage = async () => {
     showMenu();
-    const input = getUserInput();
+
+    const input = await getUserInput("메뉴의 이름을 입력해주세요 {종료하시려면 x 입력} -> ");
+    if (input.trim().toLowerCase() === 'x') {
+        userAnswer = 'n';
+        return;
+    }
+
+    if (userAmount < VENDING_MACHINE_LIST[0].findLowestPrice()) {
+        console.log('음료를 구매할 수 있는 잔액이 부족합니다, 프로그램을 종료합니다.');
+        userAnswer = 'n';
+        return;
+    }
+
     const selectedMenu = VENDING_MACHINE_LIST[0]._menuList.filter(e => e.name.replaceAll(" ", "").toLowerCase() === input.replaceAll(" ", "").toLowerCase());
 
     if (selectedMenu.length === 0) {
@@ -51,36 +75,37 @@ const saleBeverage = () => {
         return;
     }
 
-    const inputPrice = parseInt(getUserInput("요금을 지불해주세요."));
-    if (selectedMenu[0].price > inputPrice) {
-        console.log("금액이 부족합니다. 다시 시도해주세요");
+    if (selectedMenu[0].price > userAmount) {
+        console.log("해당 메뉴를 주문할 수 없습니다. 잔액을 확인하세요");
         return;
     }
 
-    BeverageSaleService.vmManageService.makeBeverage(selectedMenu, VENDING_MACHINE_LIST[0]);
+    userAmount -= selectedMenu[0].price;
+    await BeverageSaleService.vmManageService.makeBeverage(selectedMenu[0], VENDING_MACHINE_LIST[0]);
 };
 
-const question = promisify(rl.question).bind(rl);
+
 (async () => {
     try {
-        const answer = await question('자판기 이용? [Y/N]: ');
-        if (String(answer).toLowerCase() === 'y') {
+        userAnswer = await rl.question("자판기를 이용하시겠습니까? [Y/N] -> ");
+        if (userAnswer?.trim().toLowerCase() !== 'n') {
             await initVendingMachine();
-            saleBeverage();
+            userAmount = parseInt(await getUserInput("금액을 투입해주세요 -> "));
 
+            while (userAmount > 0 && userAnswer?.trim().toLowerCase() !== 'n') {
+                await saleBeverage();
+            }
+            if (userAmount > 0) {
+                console.log(calculateRemain(userAmount));
+            }
         }
-        rl.close();
     } catch (error) {
         console.error(error);
+    } finally {
+        rl.on("close", () => {
+            console.log("이용해주셔서 감사합니다.");
+            process.exit(0);
+        });
+        rl.close();
     }
 })();
-
-// let userInput: string = '';
-// (async () => {
-//     while (userInput !== 'y') {
-//         userInput = await rl.question("what is your Name?");
-//         console.log("your input is ", userInput);
-//     }
-// })();
-
-

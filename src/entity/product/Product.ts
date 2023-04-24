@@ -1,3 +1,11 @@
+export interface ProductEntity {
+    id: number;
+    name: string;
+    price: number;
+    isAvailable: boolean;
+}
+
+
 export abstract class Product {
 
     _cup: number;

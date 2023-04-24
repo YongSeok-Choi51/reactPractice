@@ -1,4 +1,5 @@
-import { ProductResourceEntity } from '../entity/machine/VendingMachine';
+
+import { ProductResourceEntity } from '../entity/product/ProductResource';
 import { PionRepository } from './PionRepository';
 
 export class ProductResourceRepository extends PionRepository {
@@ -11,16 +12,14 @@ export class ProductResourceRepository extends PionRepository {
     }
 
     async readTemplate(productId: number) {
-
         const selectProductResourceQuery = `
             SELECT
                 r.product_id as productId,
                 r.resource_id as resourceId,
                 r.amount
-            FROM pixar.product_resource
+            FROM pixar.product_resource r
             WHERE r.product_id=?
         `;
-
         const [rows, field] = await this._connection.query({ sql: selectProductResourceQuery }, [productId]);
         return rows && (rows as Array<ProductResourceEntity>).map(e => e);
     }

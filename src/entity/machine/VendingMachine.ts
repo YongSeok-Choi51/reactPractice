@@ -1,37 +1,11 @@
-export interface ProductEntity {
-    id: number;
-    name: string;
-    price: number;
-}
-
-export interface ProductResourceEntity {
-    productId: number;
-    resourceId: number;
-    amount: number;
-}
+import { ProductEntity } from '../product/Product';
+import { VmResourceEntity } from './VendingMachineResource';
 
 export interface VendingMachineEntity {
     id: number;
     name?: string;
     vmResource?: Array<VmResourceEntity>;
-    menu?: Array<Menu>;
-}
-
-export interface Menu {
-    id: number;
-    name: string;
-}
-
-export interface ResourceEntity {
-    id: number;
-    name: string;
-}
-
-export interface VmResourceEntity {
-    id: number;
-    vendingMachineId: number;
-    resourceId: number;
-    amount: number;
+    menu?: Array<ProductEntity>;
 }
 
 export interface DefVMResource {
@@ -65,6 +39,16 @@ export class VendingMachine {
             return;
         }
         this._menuList = menuList;
+    }
+
+    findLowestPrice() {
+        return this._menuList.reduce((min, current) => {
+            if (current.price < min.price) {
+                return current;
+            } else {
+                return min;
+            }
+        }).price;
     }
 
 }

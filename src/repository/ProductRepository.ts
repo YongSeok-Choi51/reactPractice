@@ -1,4 +1,4 @@
-import { ProductEntity } from '../entity/machine/VendingMachine';
+import { ProductEntity } from '../entity/product/Product';
 import { PionRepository } from './PionRepository';
 
 
@@ -13,9 +13,10 @@ export class ProductRepository extends PionRepository {
     async readTemplate() {
 
         const selectQuery = `
-            SELECT \n
-                p.name, \n
-                p.price \n
+            SELECT
+                p.id,
+                p.name,
+                p.price
             FROM pixar.product p
         `;
 

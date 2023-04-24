@@ -1,4 +1,4 @@
-import { ResourceEntity } from '../entity/machine/VendingMachine';
+import { ResourceEntity } from '../entity/product/Resource';
 import { PionRepository } from './PionRepository';
 
 
@@ -12,17 +12,14 @@ export class ResourceRepository extends PionRepository {
     }
 
     async readTemplate(query: string) {
-
         const selectAllQuery = `
             SELECT
                 r.id,
                 r.name
-            FROM pixar.resource
+            FROM pixar.resource r
         `;
-
         const [rows, field] = await this._connection.query({ sql: selectAllQuery });
         return rows && (rows as Array<ResourceEntity>).map(e => e);
-
     }
 
     async updateTemplate(query: string) {
