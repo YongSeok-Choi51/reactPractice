@@ -47,11 +47,18 @@ export class VendingMachineRepository extends PionRepository {
 
 
 
-    async readTemplate(query: string) {
-        const query1 = "SELECT * FROM pixar.vending_machine";
-        const result = await this._connection.execute(query1);
-        // console.log('the reslut', result[0]);
-        return result[0];
+    async readTemplate() {
+        const selectQuery = `
+            SELECT
+                v.id, 
+                v.name
+            FROM pixar.vending_machine v
+            ORDER BY v.id DESC
+            LIMIT 1
+        `;
+        const [rows, field] = await this._connection.query({ sql: selectQuery });
+        const vm = rows && (rows as Array<VendingMachineEntity>)[0];
+        return vm ? new VendingMachine(vm.id, vm.name) : undefined;
     };
 
     async updateTemplate(query: string) {

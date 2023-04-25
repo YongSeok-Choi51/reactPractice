@@ -3,8 +3,8 @@ import { PionRepository } from './PionRepository';
 
 
 export enum PaymentType {
-    Cash = "cash",
-    Card = "card"
+    CASH = "cash",
+    CARD = "card"
 }
 
 export interface OrderEntity {
@@ -24,9 +24,7 @@ export interface OrderDto {
 
 export class OrderRepository extends PionRepository {
 
-
     async createTemplate(orderDto: OrderDto) {
-
         const createOrderQuery = `
             INSERT INTO 
                 pixar.order (
@@ -41,10 +39,11 @@ export class OrderRepository extends PionRepository {
             VALUES(?, ?, ?, ?, ?, ?, ?)
         `;
 
+        // 결제수단, 구매자Id 정보는 임시적으로 상수로 고정, 단건판매 기준(한 잔의 음료 판매에 대한 data)
         const [resultSetHeader, _] = await this._connection.query({ sql: createOrderQuery }, [
             orderDto.vendingMachineId,
             orderDto.productId,
-            PaymentType.Card,
+            PaymentType.CASH,
             orderDto.amount,
             orderDto.price,
             new Date(),

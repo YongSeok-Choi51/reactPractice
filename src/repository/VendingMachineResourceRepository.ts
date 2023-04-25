@@ -5,7 +5,6 @@ import { PionRepository } from './PionRepository';
 
 export class VendingMachineResourceRepository extends PionRepository {
 
-
     constructor() {
         super();
     }
@@ -39,7 +38,9 @@ export class VendingMachineResourceRepository extends PionRepository {
 
     async deleteByVmId(vmId: number) {
         const deleteVmResourceQuery = `
-            DELETE FROM pixar.vending_machine_resource r WHERE r.vending_machine_id=?`;
+            DELETE FROM 
+                pixar.vending_machine_resource r 
+            WHERE r.vending_machine_id=?`;
         await this._connection.query({ sql: deleteVmResourceQuery }, [vmId]);
     }
 

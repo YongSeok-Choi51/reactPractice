@@ -3,7 +3,7 @@ import { VmResourceEntity } from './VendingMachineResource';
 
 export interface VendingMachineEntity {
     id: number;
-    name?: string;
+    name: string;
     vmResource?: Array<VmResourceEntity>;
     menu?: Array<ProductEntity>;
 }

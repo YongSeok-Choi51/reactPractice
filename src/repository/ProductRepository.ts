@@ -21,7 +21,7 @@ export class ProductRepository extends PionRepository {
         `;
 
         const [rows, fields] = await this._connection.execute(selectQuery);
-        return rows && (rows as Array<ProductEntity>).map(e => e);
+        return rows && (rows as Array<ProductEntity>).map(e => ({ ...e, isAvailable: true }));
     }
     updateTemplate(query: string) {
         throw new Error('Method not implemented.');

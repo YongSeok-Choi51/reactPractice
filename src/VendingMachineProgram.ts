@@ -10,8 +10,8 @@ import BeverageSaleService from './service/BeverageSaleService';
 // console.log("import readline", readline);
 
 // Todo! 
-// 자판기 판매 가능한 메뉴 보여주는 로직(객체 스스로가 판단하도록? 외부에서?).
-// 기존에 있는 벤딩머신이 있다면 그거 그대로 쓰게 하기
+// 자판기 판매 가능한 메뉴 보여주는 로직(객체 스스로가 판단하도록? 외부에서?). + 사용자 금액에 따라 보여주기 필터
+// 기존에 있는 벤딩머신이 DB 에 있다면 그거 그대로 쓰게 하기 x
 // 프로덕트 리스트 벤딩머신 리소스 프로덕트 리소스 테이블 을 가지고 판매 가능한 목록 뽑아보기. (Database layer)  -> Opt
 
 let userAnswer: string = "";
@@ -40,15 +40,21 @@ const calculateRemain = (userAmount: number) => {
 };
 
 const initVendingMachine = async () => {
-    const vm = await BeverageSaleService.vmManageService.createNewVendingMachine();
-    VENDING_MACHINE_LIST.push(vm);
+    const vm = await BeverageSaleService.vmManageService.getVendingMachine();
+    VENDING_MACHINE_LIST.push(vm); // 여러 개 사용할 가능성이 있음!
 };
 
 const showMenu = () => {
     console.log("");
     console.log("********* Menu List *********");
     console.log("*****************************");
-    VENDING_MACHINE_LIST[0]._menuList.forEach((e, idx) => { console.log(`${idx + 1}. ${e.name}, Price: ${e.price}`); });
+    const availableMenu = VENDING_MACHINE_LIST[0]._menuList.filter(e => e.price <= userAmount && e.isAvailable === true);
+    if (availableMenu.length > 0) {
+        availableMenu.forEach((e, idx) => { console.log(`${idx + 1}. ${e.name}, Price: ${e.price}`); });
+    } else {
+        console.log("판매 가능한 메뉴가 존재하지 않습니다.");
+        console.log("'x' 버튼을 눌러 잔돈을 반환하세요.");
+    }
     console.log("*****************************");
     console.log(`현재금액 :${userAmount}`);
 };
@@ -61,22 +67,10 @@ const saleBeverage = async () => {
         userAnswer = 'n';
         return;
     }
-
-    if (userAmount < VENDING_MACHINE_LIST[0].findLowestPrice()) {
-        console.log('음료를 구매할 수 있는 잔액이 부족합니다, 프로그램을 종료합니다.');
-        userAnswer = 'n';
-        return;
-    }
-
     const selectedMenu = VENDING_MACHINE_LIST[0]._menuList.filter(e => e.name.replaceAll(" ", "").toLowerCase() === input.replaceAll(" ", "").toLowerCase());
 
     if (selectedMenu.length === 0) {
         console.log("메뉴판에 존재하는 메뉴를 골라주세요");
-        return;
-    }
-
-    if (selectedMenu[0].price > userAmount) {
-        console.log("해당 메뉴를 주문할 수 없습니다. 잔액을 확인하세요");
         return;
     }
 

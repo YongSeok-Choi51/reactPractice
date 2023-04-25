@@ -1,4 +1,4 @@
-import { DefVMResource, VendingMachine as VendingMachineEntity } from '../entity/machine/VendingMachine';
+import { DefVMResource, VendingMachine, VendingMachine as VendingMachineEntity } from '../entity/machine/VendingMachine';
 import { ProductEntity } from '../entity/product/Product';
 import { ProductResourceEntity } from '../entity/product/ProductResource';
 import { ResourceEntity } from '../entity/product/Resource';
@@ -11,6 +11,31 @@ export class VendingMachineService {
 
     constructor() {
         // console.log("Service initialized!");
+    }
+
+    async findVendingMachineById(vmId: number) {
+
+    }
+
+
+    async getVendingMachine() {
+
+        const vm: VendingMachine = await TotalRepository.vm.readTemplate();
+        if (!vm) {
+            return await this.createNewVendingMachine();
+        }
+
+        const promiseResult = await Promise.all([
+            TotalRepository.product.readTemplate(),
+            TotalRepository.vmResource.readTemplate(vm._id)
+        ]);
+
+        const productList = promiseResult[0];
+        const vmResourceList = promiseResult[1];
+        vm._vmResource = vmResourceList;
+        vm._menuList = productList;
+        await this.checkAvailableMenuList(vm);
+        return vm;
     }
 
     async createNewVendingMachine() {
@@ -29,15 +54,7 @@ export class VendingMachineService {
         return newVendingMachine;
     }
 
-    async findVendingMachineById(vmId: number) {
-
-    }
-
-    async getVendingMachine() {
-
-    }
-
-    async makeBeverage(product: ProductEntity, vm: VendingMachineEntity) {
+    async makeBeverage(product: ProductEntity, vm: VendingMachine) {
         const productResourceList: Array<ProductResourceEntity> = await this.isMenuAvailable(product, vm);
         if (productResourceList.length === 0) {
             console.log("This Menu unAvailable..!");
@@ -62,8 +79,33 @@ export class VendingMachineService {
             }
         });
         vm._vmResource = newVmResource;
-        await TotalRepository.vmResource.onFinishTransaction(newVmResource);
+        await Promise.all([
+            TotalRepository.vmResource.onFinishTransaction(newVmResource),
+            this.checkAvailableMenuList(vm),
+        ]);
         console.log("********* End Make *********");
+    }
+
+    private async checkAvailableMenuList(vm: VendingMachine) {
+        const allProduct: Array<ProductEntity> = await TotalRepository.product.readTemplate();
+        let notAvailableProductList: Array<ProductEntity> = [];
+
+        for (let i of allProduct) {
+            const productResourceList: Array<ProductResourceEntity> = await TotalRepository.productResource.readTemplate(i.id);
+            const notAvailableProduct = productResourceList.filter(el => vm._vmResource.filter(elem => elem.resourceId === el.resourceId && elem.amount < el.amount).length > 0);
+            if (notAvailableProduct.length > 0) {
+                notAvailableProductList.push(i);
+            }
+        }
+
+        let newMenuList = [...vm._menuList];
+        notAvailableProductList.forEach(menu => {
+            const targetIdx = newMenuList.findIndex(el => el.id === menu.id);
+            if (targetIdx !== -1) {
+                newMenuList[targetIdx].isAvailable = false;
+            }
+        });
+        vm._menuList = newMenuList;
     }
 
     private async makeOrder(product: ProductEntity, vm: VendingMachineEntity) {
@@ -73,11 +115,21 @@ export class VendingMachineService {
     private async isMenuAvailable(product: ProductEntity, vm: VendingMachineEntity) {
         const productResourceList: Array<ProductResourceEntity> = await TotalRepository.productResource.readTemplate(product.id);
         const notEnoughResource = productResourceList.filter(e => vm._vmResource.filter(el => el.resourceId === e.resourceId && el.amount < e.amount).length >= 1);
-        // console.log("notEnoughMenu", notEnoughResource);
-
         if (notEnoughResource.length > 0) {
             return [];
         }
         return productResourceList;
     }
 }
+
+   // 스트림으로 처리하려면 어떻게?
+        // await (async () => {
+        //     notAvailableProductList = allProduct.filter(async e => {
+        //         const productResourceList: Array<ProductResourceEntity> = await TotalRepository.productResource.readTemplate(e.id);
+        //         const notAvailableProduct = productResourceList.filter(el => vm._vmResource.filter(elem => elem.resourceId === el.resourceId && elem.amount < el.amount).length > 0);
+        //         console.log("notAvailableProduct", notAvailableProduct);
+        //         if (notAvailableProduct.length > 0) {
+        //             return e;
+        //         }
+        //     });
+        // })();
